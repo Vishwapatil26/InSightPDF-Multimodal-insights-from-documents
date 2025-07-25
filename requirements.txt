@@ -1,0 +1,11 @@
+# requirements.txt
+numpy==1.26.4
+elasticsearch==8.13.0
+Pillow==10.3.0
+PyMuPDF==1.24.1
+ipywidgets==8.1.2
+einops==0.8.0 
+accelerate==0.31.0
+torch==2.2.2
+transformers==4.40.1
+sentence-transformers==2.7.0
