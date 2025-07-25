@@ -46,7 +46,7 @@ except Exception as e:
     sys.exit()
 
 # PDF file path (Using raw string for Windows path compatibility)
-PDF_PATH = r"D:\CDAC\research_pdfs(task2)\2504.05358v1.pdf"
+PDF_PATH = r"D:\CDAC\task4\cat.pdf"
 if not os.path.exists(PDF_PATH):
     print(f"Error: PDF file not found at '{PDF_PATH}'. Please create it.")
     sys.exit()
@@ -190,7 +190,7 @@ def search_text_by_text(query_text, k=3):
         print(f"  - Score: {hit['_score']:.4f}, Type: {hit['_source']['content_type']}, Page: {hit['_source']['source_page']}")
         print(f"    Content: \"{hit['_source']['text_content'][:300]}...\"")
 
-def search_images_by_text(query_text, k=3):
+def search_images_by_text(query_text, k=3,min_score=0.5):
     """Performs cross-modal search for IMAGES using the IMAGE_MODEL (CLIP)."""
     print(f"\n--- Cross-Modal Search: IMAGES matching text '{query_text}' ---")
     query_embedding = IMAGE_MODEL.encode(query_text)
@@ -199,6 +199,8 @@ def search_images_by_text(query_text, k=3):
     response = es_client.search(index=ES_INDEX_NAME, knn=knn_query, query=query, _source=["source_page", "image_content"])
     print(f"Found {len(response['hits']['hits'])} images:")
     for hit in response['hits']['hits']:
+        if hit['_score'] < min_score:
+            continue
         print(f"\n  - Score: {hit['_score']:.4f}, Page: {hit['_source']['source_page']}")
         img = Image.open(io.BytesIO(base64.b64decode(hit['_source']['image_content'])))
         display(img)
@@ -347,11 +349,8 @@ if __name__ == "__main__":
 
     print("\n" + "="*50 + "\n--- RUNNING EXAMPLE SEARCHES ---\n" + "="*50)
     
-    # Example 1: High-quality text search (uses Text Model)
-    search_text_by_text("A general overview of feline history")
-    
-    # Example 2: Ask a question about a table in the document (uses Text Model)
-    search_text_by_text("What is the f1 score of CaseLaw Lawformer")
+    # Example 2: Ask a question about text searchtable in the document (uses Text Model)
+    search_text_by_text("White cats belong to")
 
     # Example 3: Text-to-image search (uses CLIP)
     search_images_by_text("a photo of a white cat")
@@ -364,7 +363,7 @@ if __name__ == "__main__":
         print(f"\nSkipping image-to-image search: '{query_image_path}' not found.")
         
     # Example 5: Image-to-text search (uses CLIP to query Text Embeddings)
-    if os.path.exists(query_image_path):
-        search_text_by_image(query_image_path, k=2)
-    else:
-        print(f"\nSkipping image-to-text search: '{query_image_path}' not found.")
+    # if os.path.exists(query_image_path):
+    #     search_text_by_image(query_image_path, k=2)
+    # else:
+    #     print(f"\nSkipping image-to-text search: '{query_image_path}' not found.")
